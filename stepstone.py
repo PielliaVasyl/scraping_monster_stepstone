@@ -4,30 +4,29 @@ from multiprocessing import Pool
 import bs4
 import requests
 
-root_url = 'http://jobb.monster.se'
+root_url = 'http://www.stepstone.se'
 
 
 def get_vacancy_page_urls(index_url, max1=None):
     response = requests.get(index_url)
     soup = bs4.BeautifulSoup(response.text, "html.parser")
-    return [a.attrs.get('href') for a in soup.select('a[href^=http://annonsoversikt.monster.se:80/]')][0:max1]
+    return [a.attrs.get('href') for a in soup.select('a[href^=http://www.stepstone.se/ledigt-jobb]')][0:max1][1::2]
 
 
 def get_vacancy_data(vacancy_page_url, soup):
     vacancy_data = {}
     # response = requests.get(vacancy_page_url)
     try:
-        vacancy_data['title'] = [a.get_text() for a in soup.select('a[href^='+vacancy_page_url+']')][0]
+        vacancy_data['title'] = soup.select('a[href^='+vacancy_page_url+']')[1].attrs['title']
     except:
         vacancy_data['title'] = 'Error'
     try:
-        vacancy_data['company'] = [a.parent.parent.contents[3].a.attrs['title'] for a in
-                                   soup.select('a[href^='+vacancy_page_url+']')][0]
+        vacancy_data['company'] = soup.select('a[href^='+vacancy_page_url+']')[1].parent.parent.span.a.get_text()
     except:
         vacancy_data['company'] = 'Error'
     try:
-        vacancy_data['location'] = [a.parent.parent.parent.parent.contents[5].a.attrs['title'] for a in
-                                    soup.select('a[href^='+vacancy_page_url+']')][0].split(',')
+        vacancy_data['location'] = [soup.select('a[href^='+vacancy_page_url+']')[1].parent.parent.contents[7]
+                                        .contents[2].get_text()]
     except:
         vacancy_data['location'] = 'Error'
     vacancy_data['url'] = vacancy_page_url
@@ -56,25 +55,18 @@ def parse_args():
     return parser.parse_args()
 
 
-# def get_monster_vacancies(options):
-#     pool = Pool(options.workers)
-#     vacancy_page_urls = get_vacancy_page_urls(options.max)
-#     results = sorted(pool.map(get_vacancy_data, vacancy_page_urls, soup), key=lambda vacancy: vacancy[options.sort],
-#                      reverse=True)
-#     return results
-
-
 def get_index_urls():
     index_urls = []
     i = 0
     while True:
         i += 1
-        index_url = root_url + '/browse/Data-IT_4?pg=' + str(i)
+        index_url = root_url + '/lediga-jobb-i-hela-sverige/data-it/sida' + str(i) + '/'
         response = requests.get(index_url)
         soup = bs4.BeautifulSoup(response.text, "html.parser")
         index_urls.append(index_url)
-        if soup.select('div.navigationBar'):
-            if soup.select('span.boxWrap.selected.last'):
+        # $('section#pagination').children().length
+        if len(soup.select('section#pagination')[0].contents) >= 7:
+            if len(soup.select('a.btn.btn-caret.right')) != 1:
                 return index_urls
         else:
             return index_urls
@@ -87,24 +79,6 @@ def show_monster_vacancies(options):
         vacancies_data = get_vacancies_data(vacancy_page_url, index_url)
         for vacancy_data in vacancies_data:
             print vacancy_data
-
-    # results = get_monster_vacancies(options)
-    #
-    # print len(results)
-    # max1 = options.max
-    # if max1 is None or max1 > len(results):
-    #     max1 = len(results)
-    # if options.csv:
-    #     print(u'"title","date"')
-    # else:
-    #     print(u'Date  Title ')
-    # for i in range(max1):
-    #     if options.csv:
-    #         print(u'{0},{1}'.format(
-    #             results[i]['title'], results[i]['date']))
-    #     else:
-    #         print(u'{0} {1}'.format(
-    #             results[i]['date'], results[i]['title']))
 
 
 if __name__ == '__main__':
