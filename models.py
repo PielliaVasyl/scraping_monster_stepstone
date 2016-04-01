@@ -10,11 +10,15 @@ class Vacancy(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(), unique=False)  # collation='utf8', convert_unicode=True
     company = db.Column(db.String(), unique=False)
+    url = db.Column(db.String(), unique=False)
+    description = db.Column(db.String(), unique=False)
     locations = db.relationship('Location', secondary=locations, backref=db.backref('vacancies', lazy='dynamic'))
 
-    def __init__(self, title, company):
+    def __init__(self, title, company, url, description):
         self.title = title
         self.company = company
+        self.url = url
+        self.description = description
 
     def __repr__(self):
         return '<Vacancy %r in %r>' % (self.title, self.company)

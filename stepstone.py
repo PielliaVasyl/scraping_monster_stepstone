@@ -3,6 +3,8 @@ import argparse
 from multiprocessing import Pool
 import bs4
 import requests
+from app import db
+from models import Vacancy, Location
 
 root_url = 'http://www.stepstone.se'
 
@@ -43,7 +45,7 @@ def get_vacancies_data(vacancy_page_urls, index_url):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Show Monster openings.')
+    parser = argparse.ArgumentParser(description='Show Stepstone openings.')
     parser.add_argument('--sort', metavar='FIELD', choices=['title', 'date'],
                         default='date',
                         help='sort by the specified field. Options are title and date.')
@@ -72,14 +74,29 @@ def get_index_urls():
             return index_urls
 
 
-def show_monster_vacancies(options):
+def show_stepstone_vacancies(options):
     index_urls = get_index_urls()
     for index_url in index_urls:
         vacancy_page_url = get_vacancy_page_urls(index_url)
         vacancies_data = get_vacancies_data(vacancy_page_url, index_url)
         for vacancy_data in vacancies_data:
-            print vacancy_data
+            # print vacancy_data
+
+            title = vacancy_data['title']
+            company = vacancy_data['company']
+            url = vacancy_data['url']
+            locations = vacancy_data['location']
+
+            vacancy = Vacancy(title=title, company=company, url=url, description='Empty')
+            for loc in locations:
+                if loc in [locat.place for locat in Location.query.all()]:
+                    location = Location.query.filter_by(place=loc).first()
+                else:
+                    location = Location(place=loc)
+                vacancy.locations.append(location)
+            db.session.add(vacancy)
+            db.session.commit()
 
 
 if __name__ == '__main__':
-    show_monster_vacancies(parse_args())
+    show_stepstone_vacancies(parse_args())

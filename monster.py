@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import argparse
-from multiprocessing import Pool
+# from multiprocessing import Pool
 import bs4
 import requests
+from app import Vacancy, Location, db
 
 root_url = 'http://jobb.monster.se'
 
@@ -86,7 +87,48 @@ def show_monster_vacancies(options):
         vacancy_page_url = get_vacancy_page_urls(index_url)
         vacancies_data = get_vacancies_data(vacancy_page_url, index_url)
         for vacancy_data in vacancies_data:
-            print vacancy_data
+            # print vacancy_data
+            title = vacancy_data['title']
+            company = vacancy_data['company']
+            url = vacancy_data['url']
+            locations = vacancy_data['location']
+            # if title in [vac.title for vac in Vacancy.query.all()]:
+            #     if company in [vac.company for vac in Vacancy.query.filter_by(title=title).all()]:
+            #         pass
+            #     else:
+            #         vacancy = Vacancy(title=vacancy_data['title'], company=vacancy_data['company'],
+            #                           url=vacancy_data['url'], description='Empty')
+            #         locations = vacancy_data['location']
+            #         for loc in locations:
+            #             if loc in [locat.place for locat in Location.query.all()]:
+            #                 location = Location.query.filter_by(place=loc).first()
+            #             else:
+            #                 location = Location(place=loc)
+            #             vacancy.locations.append(location)
+            #         db.session.add(vacancy)
+            #         db.session.commit()
+            # else:
+            #     vacancy = Vacancy(title=vacancy_data['title'], company=vacancy_data['company'],
+            #                       url=vacancy_data['url'], description='Empty')
+            #     locations = vacancy_data['location']
+            #     for loc in locations:
+            #         if loc in [locat.place for locat in Location.query.all()]:
+            #             location = Location.query.filter_by(place=loc).first()
+            #         else:
+            #             location = Location(place=loc)
+            #         vacancy.locations.append(location)
+            #     db.session.add(vacancy)
+            #     db.session.commit()
+
+            vacancy = Vacancy(title=title, company=company, url=url, description='Empty')
+            for loc in locations:
+                if loc in [locat.place for locat in Location.query.all()]:
+                    location = Location.query.filter_by(place=loc).first()
+                else:
+                    location = Location(place=loc)
+                vacancy.locations.append(location)
+            db.session.add(vacancy)
+            db.session.commit()
 
     # results = get_monster_vacancies(options)
     #
