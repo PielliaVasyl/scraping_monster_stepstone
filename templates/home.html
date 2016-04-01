@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+Scraping results (top 10):
+{% for vacancy in vacancies %}
+    <ul>
+        <li>Title: <a href="{{ vacancy.url }}">{{ vacancy.title }}</a></li>
+        <li>Company: {{ vacancy.company }}</li>
+        <li>
+            Location:
+            {% for location in vacancy.locations %}
+                {{ location.place }};
+            {% endfor %}
+        </li>
+    </ul>
+{% endfor %}
+
+</body>
+</html>
