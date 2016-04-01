@@ -1,0 +1,18 @@
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+import os
+
+app = Flask(__name__)
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'test.db')
+app.config['SQLALCHEMY_MIGRATE_REPO'] = os.path.join(basedir, 'db_repository')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+db = SQLAlchemy(app)
+
+from models import Vacancy, Location
+db.create_all()
+
+@app.route('/')
+def hello_world():
+    return 'Hello World!'
